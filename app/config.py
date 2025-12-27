@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # Anthropic Configuration
     anthropic_model: str = "claude-3-5-sonnet-20241022"
 
+    # Content Validation Configuration
+    enable_content_validation: bool = True
+    enable_wikipedia_references: bool = True
+    min_confidence_threshold: float = 0.60
+    enable_content_logging: bool = True
+
     class Config:
         env_file = ".env"
         case_sensitive = False

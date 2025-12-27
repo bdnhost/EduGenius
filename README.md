@@ -12,6 +12,11 @@ EduGenius is an intelligent educational platform that leverages multiple Large L
 - **🎯 Practice Problems**: Generate practice problems with hints and solutions
 - **🌐 Modern Web Interface**: Clean, responsive UI that works on all devices
 - **🔄 Flexible Provider Selection**: Choose your preferred LLM for each request
+- **✅ Content Validation System**: Advanced content verification with confidence scoring
+- **📚 Wikipedia RAG Integration**: Retrieval-Augmented Generation using Wikipedia as reference
+- **⚠️ Smart Warnings**: Automatic alerts about content reliability and factual accuracy
+- **📊 Confidence Scoring**: Transparency about AI-generated content quality
+- **📝 Content Logging**: Complete audit trail of all generated content for quality tracking
 
 ## 🚀 Quick Start
 
@@ -241,6 +246,51 @@ ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
 - Excellent safety features
 - API: https://console.anthropic.com/
 
+### Content Validation & Quality Assurance
+
+EduGenius includes a comprehensive content validation system to ensure educational quality:
+
+**How It Works:**
+1. **Wikipedia RAG Integration**: When generating content, the system automatically searches Wikipedia for relevant reference material
+2. **Reference-Augmented Prompts**: LLMs receive context from reliable sources to improve factual accuracy
+3. **Confidence Scoring**: Each generated content receives a confidence score (High/Medium/Low) based on:
+   - Availability of reference material
+   - LLM provider reliability
+   - Topic complexity
+4. **Smart Warnings**: Users receive clear warnings about:
+   - AI-generated content limitations
+   - Missing reference materials
+   - Recommended verification steps
+5. **Content Logging**: All generated content is logged for quality tracking and auditing
+
+**Confidence Levels:**
+- **High (85%+)**: Content verified with reference material from reliable provider
+- **Medium (70-85%)**: Good quality but limited references or less tested provider
+- **Low (<70%)**: No references found or untested scenario - verify carefully
+
+**Validation Settings** (configured in `.env`):
+```env
+ENABLE_CONTENT_VALIDATION=True       # Enable/disable validation system
+ENABLE_WIKIPEDIA_REFERENCES=True     # Use Wikipedia for RAG
+MIN_CONFIDENCE_THRESHOLD=0.60        # Minimum confidence threshold
+ENABLE_CONTENT_LOGGING=True          # Log all content for auditing
+```
+
+**Content Logs:**
+All generated content is logged to `logs/content_validation.log` and `logs/content_log_YYYYMMDD.jsonl` for:
+- Quality tracking and improvement
+- Auditing educational content
+- Identifying problematic patterns
+- Research and analysis
+
+**Best Practices:**
+- ✅ Always review AI-generated content for accuracy
+- ✅ Cross-reference important facts with multiple sources
+- ✅ Use high-confidence content as a starting point, not final authority
+- ✅ Check reference sources when provided
+- ⚠️ Be extra cautious with low-confidence content
+- ⚠️ Verify specialized or controversial topics independently
+
 ## 🏗️ Project Structure
 
 ```
@@ -250,11 +300,15 @@ EduGenius/
 │   ├── config.py            # Configuration management
 │   ├── llm_providers.py     # LLM provider implementations
 │   ├── services.py          # Educational services
+│   ├── content_validation.py # Content validation & RAG system
 │   └── main.py              # FastAPI application
 ├── static/
 │   ├── index.html           # Web interface
 │   ├── styles.css           # Styling
 │   └── app.js               # Frontend logic
+├── logs/                    # Content validation and audit logs
+│   ├── content_validation.log
+│   └── content_log_YYYYMMDD.jsonl
 ├── .env                     # Environment configuration (create from .env.example)
 ├── .env.example             # Example environment file
 ├── .gitignore               # Git ignore rules
@@ -287,9 +341,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 - **app/config.py**: Manages all configuration using Pydantic settings
 - **app/llm_providers.py**: Abstract base class and implementations for each LLM
-- **app/services.py**: Educational features using LLM providers
+- **app/content_validation.py**: Content validation system with Wikipedia RAG integration
+- **app/services.py**: Educational features using LLM providers with validation
 - **app/main.py**: FastAPI routes and request handling
 - **static/**: Frontend files served by FastAPI
+- **logs/**: Content validation and audit logs
 
 ## 🐛 Troubleshooting
 

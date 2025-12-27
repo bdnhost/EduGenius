@@ -136,18 +136,19 @@ async def generate_quiz(request: QuizRequest):
 
 @app.post("/api/explain")
 async def explain_concept(request: ConceptRequest):
-    """Explain a concept."""
+    """Explain a concept with content validation."""
     try:
         service = get_service(request.provider)
-        explanation = await service.explain_concept(
+        result = await service.explain_concept(
             concept=request.concept,
             level=request.level
         )
         return {
             "concept": request.concept,
             "level": request.level,
-            "explanation": explanation,
-            "provider": service.provider.get_provider_name()
+            "explanation": result["explanation"],
+            "provider": service.provider.get_provider_name(),
+            "validation": result["validation"]
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -2,6 +2,7 @@
 from typing import Dict, List, Any, Optional
 from app.llm_providers import LLMProvider, LLMFactory
 from app.config import settings
+from app.content_validation import content_validator
 import json
 
 
@@ -15,28 +16,45 @@ class EducationalService:
             self.provider = LLMFactory.create_provider(provider_name)
         else:
             self.provider = provider
+        self.validator = content_validator
 
     async def generate_quiz(self, topic: str, num_questions: int = 5,
                           difficulty: str = "medium") -> Dict[str, Any]:
-        """Generate a quiz on a given topic."""
-        system_prompt = """You are an expert educational content creator.
+        """Generate a quiz on a given topic with content validation."""
+        # Get validation metadata and references
+        validation_meta = await self.validator.validate_and_enrich_quiz(
+            topic=topic,
+            provider=self.provider.get_provider_name()
+        )
+
+        # Add reference context to system prompt if available
+        reference_info = ""
+        if validation_meta["references"]:
+            ref_summaries = "\n".join([
+                f"- {ref['title']}: {ref['summary'][:200]}..."
+                for ref in validation_meta["references"][:2]
+            ])
+            reference_info = f"\n\nReference information from reliable sources:\n{ref_summaries}\n\nUse this information to ensure accuracy."
+
+        system_prompt = f"""You are an expert educational content creator.
 Generate quizzes in valid JSON format only. Do not include any additional text or explanation.
 The JSON must have this exact structure:
-{
+{{
     "topic": "topic name",
     "difficulty": "easy/medium/hard",
     "questions": [
-        {
+        {{
             "question": "question text",
             "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
             "correct_answer": "A",
             "explanation": "why this is correct"
-        }
+        }}
     ]
-}"""
+}}{reference_info}"""
 
         prompt = f"""Create a {difficulty} level quiz about "{topic}" with exactly {num_questions} multiple choice questions.
 Each question should have 4 options (A, B, C, D).
+Ensure factual accuracy and educational value.
 Return ONLY valid JSON with no additional text."""
 
         try:
@@ -55,6 +73,18 @@ Return ONLY valid JSON with no additional text."""
 
             quiz_data = json.loads(response)
             quiz_data["provider"] = self.provider.get_provider_name()
+
+            # Add validation metadata
+            quiz_data["validation"] = validation_meta
+
+            # Log content generation if enabled
+            if settings.enable_content_logging:
+                self.validator.log_content_generation(
+                    request_data={"topic": topic, "num_questions": num_questions, "difficulty": difficulty},
+                    response_data=quiz_data,
+                    validation_metadata=validation_meta
+                )
+
             return quiz_data
 
         except json.JSONDecodeError as e:
@@ -64,15 +94,28 @@ Return ONLY valid JSON with no additional text."""
                 "difficulty": difficulty,
                 "error": "Failed to parse quiz data",
                 "provider": self.provider.get_provider_name(),
-                "questions": []
+                "questions": [],
+                "validation": validation_meta
             }
         except Exception as e:
             raise Exception(f"Error generating quiz: {str(e)}")
 
-    async def explain_concept(self, concept: str, level: str = "intermediate") -> str:
-        """Explain a concept at the specified level."""
+    async def explain_concept(self, concept: str, level: str = "intermediate") -> Dict[str, Any]:
+        """Explain a concept at the specified level with content validation."""
+        # Get validation metadata and references
+        validation_meta = await self.validator.validate_and_enrich_explanation(
+            concept=concept,
+            provider=self.provider.get_provider_name()
+        )
+
+        # Add reference context to prompt if available
+        reference_info = ""
+        if validation_meta.get("reference_context"):
+            reference_info = f"\n\nReference information: {validation_meta['reference_context']}\n\nUse this as a factual foundation for your explanation."
+
         system_prompt = f"""You are an expert educator. Explain concepts clearly and effectively
-for {level} level students. Use examples, analogies, and structured explanations."""
+for {level} level students. Use examples, analogies, and structured explanations.
+Ensure factual accuracy based on reliable sources.{reference_info}"""
 
         prompt = f"""Explain the concept of "{concept}" in a clear and engaging way.
 Include:
@@ -89,15 +132,33 @@ Keep the explanation suitable for {level} level students."""
                 system_prompt=system_prompt,
                 temperature=0.7
             )
-            return explanation
+
+            # Log content generation if enabled
+            if settings.enable_content_logging:
+                self.validator.log_content_generation(
+                    request_data={"concept": concept, "level": level},
+                    response_data={"explanation": explanation[:200]},  # Log snippet only
+                    validation_metadata=validation_meta
+                )
+
+            return {
+                "explanation": explanation,
+                "validation": validation_meta
+            }
         except Exception as e:
             raise Exception(f"Error explaining concept: {str(e)}")
 
     async def generate_study_plan(self, subject: str, duration_weeks: int = 4,
                                  hours_per_week: int = 5) -> Dict[str, Any]:
-        """Generate a personalized study plan."""
+        """Generate a personalized study plan with content validation."""
+        # Get validation metadata and references
+        validation_meta = await self.validator.validate_and_enrich_study_plan(
+            subject=subject,
+            provider=self.provider.get_provider_name()
+        )
+
         system_prompt = """You are an expert educational planner. Create realistic and
-effective study plans in valid JSON format."""
+effective study plans in valid JSON format based on proven educational methodologies."""
 
         prompt = f"""Create a {duration_weeks}-week study plan for learning "{subject}".
 The student can dedicate {hours_per_week} hours per week.
@@ -139,6 +200,16 @@ Return ONLY valid JSON."""
 
             plan_data = json.loads(response)
             plan_data["provider"] = self.provider.get_provider_name()
+            plan_data["validation"] = validation_meta
+
+            # Log content generation if enabled
+            if settings.enable_content_logging:
+                self.validator.log_content_generation(
+                    request_data={"subject": subject, "duration_weeks": duration_weeks, "hours_per_week": hours_per_week},
+                    response_data=plan_data,
+                    validation_metadata=validation_meta
+                )
+
             return plan_data
 
         except json.JSONDecodeError:
@@ -148,7 +219,8 @@ Return ONLY valid JSON."""
                 "hours_per_week": hours_per_week,
                 "error": "Failed to parse study plan",
                 "provider": self.provider.get_provider_name(),
-                "weeks": []
+                "weeks": [],
+                "validation": validation_meta
             }
         except Exception as e:
             raise Exception(f"Error generating study plan: {str(e)}")
