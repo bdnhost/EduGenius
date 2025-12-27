@@ -1,19 +1,4 @@
-// EduGenius Frontend JavaScript
-
-// Tab switching
-function showTab(tabName) {
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-    });
-
-    // Show selected tab
-    document.getElementById(`${tabName}-tab`).classList.add('active');
-    event.target.classList.add('active');
-}
+// EduGenius - Hebrew RTL Educational Platform
 
 // Show/hide loading indicator
 function showLoading(show) {
@@ -21,8 +6,8 @@ function showLoading(show) {
 }
 
 // Display result
-function showResult(elementId, content, isError = false) {
-    const resultDiv = document.getElementById(elementId);
+function showResult(content, isError = false) {
+    const resultDiv = document.getElementById('result');
     resultDiv.innerHTML = content;
     resultDiv.classList.add('show');
     if (isError) {
@@ -30,9 +15,11 @@ function showResult(elementId, content, isError = false) {
     } else {
         resultDiv.classList.remove('error');
     }
+    // Scroll to results
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Generate validation info HTML
+// Generate validation info HTML in Hebrew
 function generateValidationHTML(validation) {
     if (!validation) return '';
 
@@ -42,27 +29,47 @@ function generateValidationHTML(validation) {
         'low': '#f44336'
     }[validation.confidence_level] || '#757575';
 
+    const confidenceText = {
+        'high': 'גבוה',
+        'medium': 'בינוני',
+        'low': 'נמוך'
+    }[validation.confidence_level] || 'לא ידוע';
+
     let html = `
-        <div class="validation-info" style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid ${confidenceColor};">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <div>
-                    <strong>Content Confidence:</strong>
-                    <span style="color: ${confidenceColor}; font-weight: bold; text-transform: uppercase;">
-                        ${validation.confidence_level}
+        <div class="validation-info" style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0; border-right: 4px solid ${confidenceColor};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                <div style="margin-bottom: 10px;">
+                    <strong>רמת אמינות התוכן:</strong>
+                    <span style="color: ${confidenceColor}; font-weight: bold; font-size: 1.2em;">
+                        ${confidenceText}
                     </span>
                     (${(validation.confidence_score * 100).toFixed(0)}%)
                 </div>
                 ${validation.has_reference_material ?
-                    '<span style="color: #4caf50;">✓ Verified with references</span>' :
-                    '<span style="color: #ff9800;">⚠️ No references found</span>'}
+                    '<span style="color: #4caf50; font-weight: 600;">✓ אומת עם מקורות מהימנים</span>' :
+                    '<span style="color: #ff9800; font-weight: 600;">⚠️ לא נמצאו מקורות התייחסות</span>'}
             </div>
     `;
 
     // Add warnings
     if (validation.validation_warnings && validation.validation_warnings.length > 0) {
-        html += '<div style="margin-top: 10px;">';
+        html += '<div style="margin-top: 15px; background: white; padding: 15px; border-radius: 8px;">';
+        html += '<strong style="color: #ff9800;">⚠️ הערות חשובות:</strong>';
         validation.validation_warnings.forEach(warning => {
-            html += `<div style="font-size: 0.9em; color: #666; margin: 5px 0;">• ${warning}</div>`;
+            // Translate common warnings to Hebrew
+            let hebrewWarning = warning;
+            if (warning.includes('AI-generated')) {
+                hebrewWarning = '🤖 תוכן זה נוצר על ידי בינה מלאכותית ועלול להכיל שגיאות';
+            } else if (warning.includes('No reference material')) {
+                hebrewWarning = '📚 לא נמצא חומר התייחסות. מומלץ לבדוק מול מקורות נוספים';
+            } else if (warning.includes('Low confidence')) {
+                hebrewWarning = '⚠️ אמינות נמוכה: אנא אמתו את המידע מול מקורות אחרים';
+            } else if (warning.includes('Medium confidence')) {
+                hebrewWarning = '💡 אמינות בינונית: מומלץ לאמת עובדות מפתח';
+            } else if (warning.includes('Always consult')) {
+                hebrewWarning = '📖 תמיד התייעצו עם מקורות מרובים לתוכן חינוכי חשוב';
+            }
+            html += `<div style="font-size: 0.95em; color: #666; margin: 8px 0; padding: 5px 10px; background: #f9f9f9; border-radius: 5px;">• ${hebrewWarning}</div>`;
         });
         html += '</div>';
     }
@@ -70,18 +77,18 @@ function generateValidationHTML(validation) {
     // Add references if available
     if (validation.references && validation.references.length > 0) {
         html += `
-            <details style="margin-top: 10px;">
-                <summary style="cursor: pointer; font-weight: 500; color: #667eea;">
-                    📚 View Reference Sources (${validation.references.length})
+            <details style="margin-top: 15px;">
+                <summary style="cursor: pointer; font-weight: 600; padding: 12px; background: white; border-radius: 8px; color: #667eea;">
+                    📚 צפה במקורות המידע (${validation.references.length})
                 </summary>
-                <div style="margin-top: 10px; padding-left: 10px;">
+                <div style="margin-top: 15px; padding: 10px;">
         `;
         validation.references.forEach(ref => {
             html += `
-                <div style="margin: 8px 0; padding: 8px; background: white; border-radius: 4px;">
-                    <strong>${ref.title}</strong><br>
-                    <span style="font-size: 0.9em; color: #666;">${ref.summary}</span><br>
-                    <a href="${ref.url}" target="_blank" style="color: #667eea; font-size: 0.9em;">Read more →</a>
+                <div style="margin: 12px 0; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <strong style="color: #333; font-size: 1.1em;">${ref.title}</strong><br>
+                    <span style="font-size: 0.95em; color: #666; line-height: 1.5; display: block; margin: 8px 0;">${ref.summary}</span><br>
+                    <a href="${ref.url}" target="_blank" style="color: #667eea; font-weight: 600; text-decoration: none;">קרא עוד ב-Wikipedia ←</a>
                 </div>
             `;
         });
@@ -92,7 +99,7 @@ function generateValidationHTML(validation) {
     return html;
 }
 
-// Fetch provider information on load
+// Load provider information on page load
 async function loadProviderInfo() {
     try {
         const response = await fetch('/api/providers');
@@ -103,30 +110,37 @@ async function loadProviderInfo() {
             .map(([name, _]) => name)
             .join(', ');
 
+        const providerNames = {
+            'deepseek': 'DeepSeek',
+            'openai': 'OpenAI',
+            'anthropic': 'Anthropic'
+        };
+
         const providerInfo = document.getElementById('provider-info');
         providerInfo.innerHTML = `
-            <strong>Default Provider:</strong> ${data.default.toUpperCase()} |
-            <strong>Available:</strong> ${availableProviders || 'None configured'}
+            <strong>ספק ברירת המחדל:</strong> ${providerNames[data.default] || data.default.toUpperCase()} |
+            <strong>ספקים זמינים:</strong> ${availableProviders || 'לא הוגדרו ספקים'}
         `;
     } catch (error) {
         console.error('Error loading provider info:', error);
     }
 }
 
-// Quiz Form Handler
-document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+// Learning Unit Form Handler
+document.getElementById('learning-unit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     showLoading(true);
 
+    const learningPrompt = document.getElementById('learning-prompt').value;
+    const provider = document.getElementById('provider').value || null;
+
     const data = {
-        topic: document.getElementById('quiz-topic').value,
-        num_questions: parseInt(document.getElementById('quiz-questions').value),
-        difficulty: document.getElementById('quiz-difficulty').value,
-        provider: document.getElementById('quiz-provider').value || null
+        prompt: learningPrompt,
+        provider: provider
     };
 
     try {
-        const response = await fetch('/api/quiz', {
+        const response = await fetch('/api/learning-unit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -135,81 +149,13 @@ document.getElementById('quiz-form').addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.detail || 'Error generating quiz');
+            throw new Error(result.detail || 'שגיאה ביצירת יחידת הלימוד');
         }
 
-        let html = `<div class="provider-badge">Generated by: ${result.provider || 'Unknown'}</div>`;
-        html += `<h3>Quiz: ${result.topic}</h3>`;
-        html += `<p><strong>Difficulty:</strong> ${result.difficulty}</p>`;
-
-        // Add validation info
-        if (result.validation) {
-            html += generateValidationHTML(result.validation);
-        }
-
-        if (result.questions && result.questions.length > 0) {
-            result.questions.forEach((q, index) => {
-                html += `
-                    <div class="quiz-question">
-                        <h4>Question ${index + 1}: ${q.question}</h4>
-                        <div class="options">
-                            ${q.options.map(opt => `<div class="quiz-option">${opt}</div>`).join('')}
-                        </div>
-                        <div class="explanation">
-                            <strong>Correct Answer:</strong> ${q.correct_answer}<br>
-                            <strong>Explanation:</strong> ${q.explanation}
-                        </div>
-                        <button class="btn-primary" onclick="toggleExplanation(this)" style="margin-top: 10px; padding: 8px 15px; font-size: 0.9em;">Show Answer</button>
-                    </div>
-                `;
-            });
-        } else if (result.error) {
-            html += `<p class="error">Error: ${result.error}</p>`;
-        }
-
-        showResult('quiz-result', html);
-    } catch (error) {
-        showResult('quiz-result', `<p>Error: ${error.message}</p>`, true);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Toggle explanation visibility
-function toggleExplanation(button) {
-    const explanation = button.previousElementSibling;
-    explanation.classList.toggle('show');
-    button.textContent = explanation.classList.contains('show') ? 'Hide Answer' : 'Show Answer';
-}
-
-// Explain Concept Form Handler
-document.getElementById('explain-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    showLoading(true);
-
-    const data = {
-        concept: document.getElementById('explain-concept').value,
-        level: document.getElementById('explain-level').value,
-        provider: document.getElementById('explain-provider').value || null
-    };
-
-    try {
-        const response = await fetch('/api/explain', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || 'Error explaining concept');
-        }
-
+        // Build Hebrew results HTML
         let html = `
-            <div class="provider-badge">Generated by: ${result.provider}</div>
-            <h3>${result.concept}</h3>
-            <p><strong>Level:</strong> ${result.level}</p>
+            <div class="provider-badge">נוצר על ידי: ${result.provider || 'לא ידוע'}</div>
+            <h2 style="color: #667eea; margin-bottom: 20px;">📚 ${result.topic || 'יחידת לימוד'}</h2>
         `;
 
         // Add validation info
@@ -217,210 +163,144 @@ document.getElementById('explain-form').addEventListener('submit', async (e) => 
             html += generateValidationHTML(result.validation);
         }
 
-        html += `<div style="margin-top: 20px; white-space: pre-wrap; line-height: 1.6;">${result.explanation}</div>`;
-
-        showResult('explain-result', html);
-    } catch (error) {
-        showResult('explain-result', `<p>Error: ${error.message}</p>`, true);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Study Plan Form Handler
-document.getElementById('study-plan-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    showLoading(true);
-
-    const data = {
-        subject: document.getElementById('study-subject').value,
-        duration_weeks: parseInt(document.getElementById('study-weeks').value),
-        hours_per_week: parseInt(document.getElementById('study-hours').value),
-        provider: document.getElementById('study-provider').value || null
-    };
-
-    try {
-        const response = await fetch('/api/study-plan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || 'Error creating study plan');
+        // Section 1: Explanation
+        if (result.explanation) {
+            html += `
+                <div class="section-title">📖 הסבר מפורט</div>
+                <div class="section-content" style="white-space: pre-wrap; line-height: 1.8;">
+                    ${result.explanation}
+                </div>
+            `;
         }
 
-        let html = `<div class="provider-badge">Generated by: ${result.provider || 'Unknown'}</div>`;
-        html += `<h3>Study Plan: ${result.subject}</h3>`;
-        html += `<p><strong>Duration:</strong> ${result.duration_weeks} weeks | <strong>Time:</strong> ${result.hours_per_week} hours/week</p>`;
-
-        // Add validation info
-        if (result.validation) {
-            html += generateValidationHTML(result.validation);
-        }
-
-        if (result.weeks && result.weeks.length > 0) {
-            result.weeks.forEach(week => {
+        // Section 2: Quiz
+        if (result.quiz && result.quiz.questions && result.quiz.questions.length > 0) {
+            html += `<div class="section-title">✍️ מבחן (${result.quiz.questions.length} שאלות)</div>`;
+            result.quiz.questions.forEach((q, index) => {
                 html += `
-                    <div class="study-week">
-                        <h4>Week ${week.week}: ${week.focus}</h4>
-                        <div><strong>Topics:</strong>
+                    <div class="quiz-question">
+                        <h4>שאלה ${index + 1}: ${q.question}</h4>
+                        <div class="options">
+                            ${q.options.map(opt => `<div class="quiz-option">${opt}</div>`).join('')}
+                        </div>
+                        <div class="explanation" id="quiz-exp-${index}">
+                            <strong>תשובה נכונה:</strong> ${q.correct_answer}<br>
+                            <strong>הסבר:</strong> ${q.explanation}
+                        </div>
+                        <button class="btn-primary" onclick="toggleQuizAnswer(${index})" style="margin-top: 10px; padding: 10px 20px; font-size: 1em; width: auto;">הצג תשובה</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Section 3: Practice Problems
+        if (result.practice && result.practice.length > 0) {
+            html += `<div class="section-title">🎯 תרגילי תרגול (${result.practice.length})</div>`;
+            result.practice.forEach((problem, index) => {
+                html += `
+                    <div class="practice-problem">
+                        <h4>תרגיל ${index + 1}</h4>
+                        <p style="font-size: 1.1em; line-height: 1.6;">${problem.problem}</p>
+                `;
+
+                if (problem.hints && problem.hints.length > 0) {
+                    html += `
+                        <div class="hints">
+                            <h5>💡 רמזים:</h5>
+                            <ul>${problem.hints.map(h => `<li>${h}</li>`).join('')}</ul>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <div class="solution" id="practice-sol-${index}" style="display: none;">
+                            <h5>✅ פתרון:</h5>
+                            <p style="white-space: pre-wrap; line-height: 1.6;">${problem.solution}</p>
+                        </div>
+                        <button class="btn-primary" onclick="togglePracticeSolution(${index})" style="margin-top: 10px; padding: 10px 20px; font-size: 1em; width: auto;">הצג פתרון</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Section 4: Study Plan
+        if (result.study_plan && result.study_plan.weeks && result.study_plan.weeks.length > 0) {
+            html += `
+                <div class="section-title">📅 תוכנית לימוד (${result.study_plan.weeks.length} שבועות)</div>
+            `;
+
+            result.study_plan.weeks.forEach(week => {
+                html += `
+                    <div class="section-content">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">שבוע ${week.week}: ${week.focus}</h3>
+                        <div style="margin-bottom: 15px;">
+                            <strong>נושאים:</strong>
                             <ul>${week.topics.map(t => `<li>${t}</li>`).join('')}</ul>
                         </div>
-                        <div><strong>Activities:</strong>
+                        <div style="margin-bottom: 15px;">
+                            <strong>פעילויות:</strong>
                             <ul>${week.activities.map(a => `<li>${a}</li>`).join('')}</ul>
                         </div>
-                        <div><strong>Goals:</strong>
+                        <div>
+                            <strong>יעדים:</strong>
                             <ul>${week.goals.map(g => `<li>${g}</li>`).join('')}</ul>
                         </div>
                     </div>
                 `;
             });
 
-            if (result.resources && result.resources.length > 0) {
+            // Add resources and tips if available
+            if (result.study_plan.resources && result.study_plan.resources.length > 0) {
                 html += `
-                    <div class="study-week">
-                        <h4>Recommended Resources</h4>
-                        <ul>${result.resources.map(r => `<li>${r}</li>`).join('')}</ul>
+                    <div class="section-content">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">📚 מקורות מומלצים</h4>
+                        <ul>${result.study_plan.resources.map(r => `<li>${r}</li>`).join('')}</ul>
                     </div>
                 `;
             }
 
-            if (result.tips && result.tips.length > 0) {
+            if (result.study_plan.tips && result.study_plan.tips.length > 0) {
                 html += `
-                    <div class="study-week">
-                        <h4>Study Tips</h4>
-                        <ul>${result.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+                    <div class="section-content" style="background: #e8f5e9;">
+                        <h4 style="color: #4caf50; margin-bottom: 10px;">💡 טיפים ללימוד</h4>
+                        <ul>${result.study_plan.tips.map(t => `<li>${t}</li>`).join('')}</ul>
                     </div>
                 `;
             }
-        } else if (result.error) {
-            html += `<p class="error">Error: ${result.error}</p>`;
         }
 
-        showResult('study-plan-result', html);
+        showResult(html);
     } catch (error) {
-        showResult('study-plan-result', `<p>Error: ${error.message}</p>`, true);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Homework Help Form Handler
-document.getElementById('homework-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    showLoading(true);
-
-    const data = {
-        question: document.getElementById('homework-question').value,
-        subject: document.getElementById('homework-subject').value || null,
-        provider: document.getElementById('homework-provider').value || null
-    };
-
-    try {
-        const response = await fetch('/api/homework-help', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || 'Error getting homework help');
-        }
-
-        const html = `
-            <div class="provider-badge">Generated by: ${result.provider}</div>
-            <h3>Homework Help${result.subject ? ': ' + result.subject : ''}</h3>
-            <div style="background: white; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                <strong>Your Question:</strong><br>
-                ${result.question}
+        showResult(`
+            <div style="text-align: center; padding: 30px;">
+                <h3 style="color: #f44336; margin-bottom: 15px;">❌ שגיאה</h3>
+                <p style="font-size: 1.1em;">${error.message}</p>
+                <p style="margin-top: 15px; color: #666;">אנא בדוק את הגדרות ה-API ונסה שנית</p>
             </div>
-            <div style="margin-top: 20px; white-space: pre-wrap; line-height: 1.6;">${result.help}</div>
-        `;
-
-        showResult('homework-result', html);
-    } catch (error) {
-        showResult('homework-result', `<p>Error: ${error.message}</p>`, true);
+        `, true);
     } finally {
         showLoading(false);
     }
 });
 
-// Practice Problems Form Handler
-document.getElementById('practice-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    showLoading(true);
+// Toggle quiz answer visibility
+function toggleQuizAnswer(index) {
+    const explanation = document.getElementById(`quiz-exp-${index}`);
+    const button = event.target;
+    explanation.classList.toggle('show');
+    button.textContent = explanation.classList.contains('show') ? 'הסתר תשובה' : 'הצג תשובה';
+}
 
-    const data = {
-        topic: document.getElementById('practice-topic').value,
-        num_problems: parseInt(document.getElementById('practice-count').value),
-        difficulty: document.getElementById('practice-difficulty').value,
-        provider: document.getElementById('practice-provider').value || null
-    };
-
-    try {
-        const response = await fetch('/api/practice', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || 'Error generating practice problems');
-        }
-
-        let html = `<div class="provider-badge">Generated by: ${result.provider}</div>`;
-        html += `<h3>Practice Problems: ${result.topic}</h3>`;
-        html += `<p><strong>Difficulty:</strong> ${result.difficulty}</p>`;
-
-        if (result.problems && result.problems.length > 0) {
-            result.problems.forEach((problem, index) => {
-                html += `
-                    <div class="practice-problem">
-                        <h4>Problem ${index + 1}</h4>
-                        <p>${problem.problem}</p>
-                        ${problem.hints && problem.hints.length > 0 ? `
-                            <div class="hints">
-                                <h5>Hints:</h5>
-                                <ul>${problem.hints.map(h => `<li>${h}</li>`).join('')}</ul>
-                            </div>
-                        ` : ''}
-                        <div class="solution" id="solution-${index}" style="display: none;">
-                            <h5>Solution:</h5>
-                            <p>${problem.solution}</p>
-                        </div>
-                        <button class="btn-primary" onclick="toggleSolution(${index})" style="margin-top: 10px; padding: 8px 15px; font-size: 0.9em;">Show Solution</button>
-                    </div>
-                `;
-            });
-        } else {
-            html += '<p>No practice problems generated. Please try again.</p>';
-        }
-
-        showResult('practice-result', html);
-    } catch (error) {
-        showResult('practice-result', `<p>Error: ${error.message}</p>`, true);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Toggle solution visibility
-function toggleSolution(index) {
-    const solution = document.getElementById(`solution-${index}`);
+// Toggle practice solution visibility
+function togglePracticeSolution(index) {
+    const solution = document.getElementById(`practice-sol-${index}`);
     const button = event.target;
     if (solution.style.display === 'none') {
         solution.style.display = 'block';
-        button.textContent = 'Hide Solution';
+        button.textContent = 'הסתר פתרון';
     } else {
         solution.style.display = 'none';
-        button.textContent = 'Show Solution';
+        button.textContent = 'הצג פתרון';
     }
 }
 

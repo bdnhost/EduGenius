@@ -1,199 +1,66 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGenius - AI-Powered Learning Assistant</title>
+    <title>EduGenius - עוזר הלימוד החכם</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎓 EduGenius</h1>
-            <p class="subtitle">AI-Powered Educational Assistant</p>
+            <p class="subtitle">עוזר הלימוד החכם המופעל ב-AI</p>
             <div id="provider-info" class="provider-info"></div>
         </header>
 
-        <div class="tabs">
-            <button class="tab-button active" onclick="showTab('quiz')">Generate Quiz</button>
-            <button class="tab-button" onclick="showTab('explain')">Explain Concept</button>
-            <button class="tab-button" onclick="showTab('study-plan')">Study Plan</button>
-            <button class="tab-button" onclick="showTab('homework')">Homework Help</button>
-            <button class="tab-button" onclick="showTab('practice')">Practice Problems</button>
-        </div>
+        <div class="main-section">
+            <h2>צור יחידת לימוד מלאה</h2>
+            <p class="instruction">תאר מה אתה רוצה ללמוד, ואני אכין עבורך יחידת לימוד מלאה עם הסברים, מבחן, תרגילים ותוכנית לימוד</p>
 
-        <!-- Quiz Tab -->
-        <div id="quiz-tab" class="tab-content active">
-            <h2>Generate Quiz</h2>
-            <form id="quiz-form">
+            <form id="learning-unit-form">
                 <div class="form-group">
-                    <label for="quiz-topic">Topic:</label>
-                    <input type="text" id="quiz-topic" required placeholder="e.g., Ancient Rome, Calculus, Python Programming">
+                    <label for="learning-prompt">מה תרצה ללמוד?</label>
+                    <textarea
+                        id="learning-prompt"
+                        required
+                        rows="6"
+                        placeholder="לדוגמה: אני רוצה ללמוד על מלחמת העולם השנייה ברמה בסיסית
+
+או: תכין לי יחידת לימוד על אלגוריתמי מיון בפייתון לרמה מתקדמת
+
+או: אני צריך ללמוד על תהליך הפוטוסינתזה לכיתה ח׳
+
+או: תלמד אותי על מהפכת התעשייה עם דגש על השפעותיה החברתיות"></textarea>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="quiz-questions">Number of Questions:</label>
-                        <input type="number" id="quiz-questions" min="1" max="20" value="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="quiz-difficulty">Difficulty:</label>
-                        <select id="quiz-difficulty">
-                            <option value="easy">Easy</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="quiz-provider">LLM Provider:</label>
-                        <select id="quiz-provider">
-                            <option value="">Default</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
+                        <label for="provider">בחר מנוע AI (אופציונלי):</label>
+                        <select id="provider">
+                            <option value="">ברירת מחדל (DeepSeek)</option>
+                            <option value="deepseek">DeepSeek - מומלץ</option>
+                            <option value="openai">OpenAI (GPT-4)</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary">Generate Quiz</button>
-            </form>
-            <div id="quiz-result" class="result"></div>
-        </div>
 
-        <!-- Explain Tab -->
-        <div id="explain-tab" class="tab-content">
-            <h2>Explain Concept</h2>
-            <form id="explain-form">
-                <div class="form-group">
-                    <label for="explain-concept">Concept:</label>
-                    <input type="text" id="explain-concept" required placeholder="e.g., Photosynthesis, Recursion, Democracy">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="explain-level">Level:</label>
-                        <select id="explain-level">
-                            <option value="beginner">Beginner</option>
-                            <option value="intermediate" selected>Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="explain-provider">LLM Provider:</label>
-                        <select id="explain-provider">
-                            <option value="">Default</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Get Explanation</button>
+                <button type="submit" class="btn-primary">🚀 צור יחידת לימוד</button>
             </form>
-            <div id="explain-result" class="result"></div>
-        </div>
 
-        <!-- Study Plan Tab -->
-        <div id="study-plan-tab" class="tab-content">
-            <h2>Create Study Plan</h2>
-            <form id="study-plan-form">
-                <div class="form-group">
-                    <label for="study-subject">Subject:</label>
-                    <input type="text" id="study-subject" required placeholder="e.g., Machine Learning, Spanish, Physics">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="study-weeks">Duration (weeks):</label>
-                        <input type="number" id="study-weeks" min="1" max="52" value="4">
-                    </div>
-                    <div class="form-group">
-                        <label for="study-hours">Hours/week:</label>
-                        <input type="number" id="study-hours" min="1" max="40" value="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="study-provider">LLM Provider:</label>
-                        <select id="study-provider">
-                            <option value="">Default</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Create Plan</button>
-            </form>
-            <div id="study-plan-result" class="result"></div>
-        </div>
-
-        <!-- Homework Tab -->
-        <div id="homework-tab" class="tab-content">
-            <h2>Homework Help</h2>
-            <form id="homework-form">
-                <div class="form-group">
-                    <label for="homework-question">Question:</label>
-                    <textarea id="homework-question" required rows="4" placeholder="Enter your homework question here..."></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="homework-subject">Subject (optional):</label>
-                        <input type="text" id="homework-subject" placeholder="e.g., Mathematics, Chemistry">
-                    </div>
-                    <div class="form-group">
-                        <label for="homework-provider">LLM Provider:</label>
-                        <select id="homework-provider">
-                            <option value="">Default</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Get Help</button>
-            </form>
-            <div id="homework-result" class="result"></div>
-        </div>
-
-        <!-- Practice Tab -->
-        <div id="practice-tab" class="tab-content">
-            <h2>Practice Problems</h2>
-            <form id="practice-form">
-                <div class="form-group">
-                    <label for="practice-topic">Topic:</label>
-                    <input type="text" id="practice-topic" required placeholder="e.g., Algebra, Chemical Equations, Grammar">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="practice-count">Number of Problems:</label>
-                        <input type="number" id="practice-count" min="1" max="10" value="3">
-                    </div>
-                    <div class="form-group">
-                        <label for="practice-difficulty">Difficulty:</label>
-                        <select id="practice-difficulty">
-                            <option value="easy">Easy</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="practice-provider">LLM Provider:</label>
-                        <select id="practice-provider">
-                            <option value="">Default</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Generate Problems</button>
-            </form>
-            <div id="practice-result" class="result"></div>
+            <div id="result" class="result"></div>
         </div>
 
         <footer>
-            <p>EduGenius - Powered by DeepSeek, OpenAI, and Anthropic AI</p>
+            <p>EduGenius - מופעל על ידי DeepSeek, OpenAI ו-Anthropic AI</p>
+            <p class="footer-note">מערכת אימות תוכן מתקדמת עם אינטגרציה ל-Wikipedia</p>
         </footer>
     </div>
 
     <div id="loading" class="loading">
         <div class="spinner"></div>
-        <p>Generating response...</p>
+        <p>מכין את יחידת הלימוד שלך...</p>
     </div>
 
     <script src="/static/app.js"></script>

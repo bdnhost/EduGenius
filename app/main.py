@@ -10,6 +10,7 @@ import os
 from app.config import settings
 from app.llm_providers import LLMFactory
 from app.services import EducationalService
+from app.learning_unit import LearningUnitGenerator
 
 # Create FastAPI app
 app = FastAPI(
@@ -64,6 +65,11 @@ class PracticeRequest(BaseModel):
     topic: str = Field(..., description="The topic for practice problems")
     num_problems: int = Field(3, ge=1, le=10, description="Number of problems")
     difficulty: str = Field("medium", pattern="^(easy|medium|hard)$")
+    provider: Optional[str] = Field(None, pattern="^(openai|anthropic|deepseek)$")
+
+
+class LearningUnitRequest(BaseModel):
+    prompt: str = Field(..., description="Natural language description of what to learn")
     provider: Optional[str] = Field(None, pattern="^(openai|anthropic|deepseek)$")
 
 
@@ -214,6 +220,27 @@ async def generate_practice(request: PracticeRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating practice problems: {str(e)}")
+
+
+@app.post("/api/learning-unit")
+async def create_learning_unit(request: LearningUnitRequest):
+    """Generate a complete learning unit from a natural language prompt."""
+    try:
+        # Create learning unit generator with optional provider
+        if request.provider:
+            provider = LLMFactory.create_provider(request.provider)
+            generator = LearningUnitGenerator(provider=provider)
+        else:
+            generator = LearningUnitGenerator()
+
+        # Generate the complete learning unit
+        learning_unit = await generator.generate_learning_unit(request.prompt)
+
+        return learning_unit
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating learning unit: {str(e)}")
 
 
 if __name__ == "__main__":

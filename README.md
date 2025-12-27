@@ -1,22 +1,31 @@
-# 🎓 EduGenius - AI-Powered Educational Assistant
+# 🎓 EduGenius - עוזר הלימוד החכם
 
 EduGenius is an intelligent educational platform that leverages multiple Large Language Models (LLMs) including **DeepSeek**, OpenAI, and Anthropic to provide personalized learning experiences.
 
+**New in v2.0:**
+- 🇮🇱 **Full Hebrew interface with RTL support**
+- ⚡ **Simplified single-prompt interface** - Create complete learning units from one natural language request
+- 🎯 **Unified Learning Units** - Get explanations, quizzes, practice problems, and study plans all at once
+
 ## ✨ Features
 
-- **🧠 Multiple LLM Support**: Use DeepSeek, OpenAI (GPT-4), or Anthropic (Claude) as your AI backend
-- **📝 Quiz Generation**: Create custom quizzes on any topic with multiple difficulty levels
-- **💡 Concept Explanations**: Get clear, level-appropriate explanations of complex concepts
-- **📅 Study Plans**: Generate personalized study plans based on your goals and schedule
-- **🤝 Homework Help**: Receive guided assistance without direct answers (Socratic method)
-- **🎯 Practice Problems**: Generate practice problems with hints and solutions
-- **🌐 Modern Web Interface**: Clean, responsive UI that works on all devices
-- **🔄 Flexible Provider Selection**: Choose your preferred LLM for each request
+### Core Functionality
+- **🚀 One-Prompt Learning Units**: Simply describe what you want to learn in natural language, and get:
+  - 📖 Detailed explanations
+  - ✍️ Interactive quizzes with answers
+  - 🎯 Practice problems with hints and solutions
+  - 📅 Structured study plans
+- **🇮🇱 Hebrew Interface**: Full RTL (right-to-left) support with Hebrew UI
+- **🌐 Natural Language Input**: No forms to fill - just tell us what you want to learn
+- **🧠 Multiple LLM Support**: Use DeepSeek (recommended), OpenAI (GPT-4), or Anthropic (Claude)
+
+### Quality & Validation
 - **✅ Content Validation System**: Advanced content verification with confidence scoring
 - **📚 Wikipedia RAG Integration**: Retrieval-Augmented Generation using Wikipedia as reference
 - **⚠️ Smart Warnings**: Automatic alerts about content reliability and factual accuracy
-- **📊 Confidence Scoring**: Transparency about AI-generated content quality
+- **📊 Confidence Scoring**: Transparency about AI-generated content quality (High/Medium/Low)
 - **📝 Content Logging**: Complete audit trail of all generated content for quality tracking
+- **🔗 Source Attribution**: Direct links to Wikipedia sources used for content generation
 
 ## 🚀 Quick Start
 
@@ -80,41 +89,60 @@ EduGenius is an intelligent educational platform that leverages multiple Large L
 
 ## 📖 Usage Guide
 
-### Web Interface
+### Web Interface (Hebrew / עברית)
 
-The web interface provides five main features accessible via tabs:
+The new simplified interface allows you to create complete learning units with a single natural language prompt:
 
-#### 1. Generate Quiz
-- Enter a topic (e.g., "Ancient Rome", "Python Programming")
-- Select number of questions (1-20)
-- Choose difficulty level (Easy, Medium, Hard)
-- Select LLM provider (optional, uses default if not specified)
-- Click "Generate Quiz" to create an interactive quiz
+#### How to Use:
+1. **Open the application** at `http://localhost:8000`
+2. **Describe what you want to learn** in the text box - use natural language!
+3. **Optionally select an LLM provider** (DeepSeek is recommended)
+4. **Click "צור יחידת לימוד" (Create Learning Unit)**
+5. **Wait for your complete learning unit** with:
+   - 📖 Detailed explanation of the concept
+   - ✍️ Interactive quiz with multiple-choice questions
+   - 🎯 Practice problems with hints and solutions
+   - 📅 Week-by-week study plan
 
-#### 2. Explain Concept
-- Enter a concept to learn about
-- Choose your level (Beginner, Intermediate, Advanced)
-- Get a detailed, structured explanation with examples
+#### Example Prompts:
 
-#### 3. Study Plan
-- Enter the subject you want to study
-- Specify duration in weeks and hours per week
-- Receive a week-by-week structured study plan with topics, activities, and goals
+**Hebrew:**
+- `אני רוצה ללמוד על מלחמת העולם השנייה ברמה בסיסית`
+- `תכין לי יחידת לימוד על אלגוריתמי מיון בפייתון לרמה מתקדמת`
+- `אני צריך ללמוד על תהליך הפוטוסינתזה לכיתה ח׳`
+- `תלמד אותי על מהפכת התעשייה עם דגש על השפעותיה החברתיות`
 
-#### 4. Homework Help
-- Paste your homework question
-- Optionally specify the subject
-- Get guided help that teaches you how to solve the problem
+**English:**
+- `I want to learn about World War II at a basic level`
+- `Prepare me a learning unit on sorting algorithms in Python for advanced level`
+- `I need to learn about photosynthesis for 8th grade`
+- `Teach me about the Industrial Revolution with emphasis on social impacts`
 
-#### 5. Practice Problems
-- Enter a topic to practice
-- Select number of problems (1-10)
-- Choose difficulty level
-- Get problems with hints and detailed solutions
+#### What You'll Get:
+
+Each learning unit includes:
+1. **הסבר מפורט (Detailed Explanation)**: Comprehensive explanation with examples and key points
+2. **מבחן (Quiz)**: 5 multiple-choice questions with answers and explanations
+3. **תרגילי תרגול (Practice Problems)**: 3 practice problems with hints and full solutions
+4. **תוכנית לימוד (Study Plan)**: 2+ week structured study plan with weekly topics, activities, and goals
+5. **אימות תוכן (Content Validation)**: Confidence score, warnings, and Wikipedia reference links
 
 ### API Endpoints
 
-EduGenius also provides a REST API for integration:
+EduGenius provides a REST API for integration:
+
+#### Create Learning Unit (NEW - Recommended)
+```bash
+POST /api/learning-unit
+Content-Type: application/json
+
+{
+  "prompt": "I want to learn about the Solar System at an intermediate level",
+  "provider": "deepseek"  // optional
+}
+```
+
+This single endpoint returns a complete learning unit with explanation, quiz, practice problems, and study plan.
 
 #### Health Check
 ```bash
