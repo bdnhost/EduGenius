@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGenius - עוזר הלימוד החכם</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 EduGenius</h1>
+            <p class="subtitle">עוזר הלימוד החכם המופעל ב-AI</p>
+            <div id="provider-info" class="provider-info"></div>
+        </header>
+
+        <div class="main-section">
+            <h2>צור יחידת לימוד מלאה</h2>
+            <p class="instruction">תאר מה אתה רוצה ללמוד, ואני אכין עבורך יחידת לימוד מלאה עם הסברים, מבחן, תרגילים ותוכנית לימוד</p>
+
+            <form id="learning-unit-form">
+                <div class="form-group">
+                    <label for="learning-prompt">מה תרצה ללמוד?</label>
+                    <textarea
+                        id="learning-prompt"
+                        required
+                        rows="6"
+                        placeholder="לדוגמה: אני רוצה ללמוד על מלחמת העולם השנייה ברמה בסיסית
+
+או: תכין לי יחידת לימוד על אלגוריתמי מיון בפייתון לרמה מתקדמת
+
+או: אני צריך ללמוד על תהליך הפוטוסינתזה לכיתה ח׳
+
+או: תלמד אותי על מהפכת התעשייה עם דגש על השפעותיה החברתיות"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="provider">בחר מנוע AI (אופציונלי):</label>
+                        <select id="provider">
+                            <option value="">ברירת מחדל (DeepSeek)</option>
+                            <option value="deepseek">DeepSeek - מומלץ</option>
+                            <option value="openai">OpenAI (GPT-4)</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">🚀 צור יחידת לימוד</button>
+            </form>
+
+            <div id="result" class="result"></div>
+        </div>
+
+        <footer>
+            <p>EduGenius - מופעל על ידי DeepSeek, OpenAI ו-Anthropic AI</p>
+            <p class="footer-note">מערכת אימות תוכן מתקדמת עם אינטגרציה ל-Wikipedia</p>
+        </footer>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>מכין את יחידת הלימוד שלך...</p>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
