@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     min_confidence_threshold: float = 0.60
     enable_content_logging: bool = True
 
+    # LMS Integration Configuration
+    enable_lms_integration: bool = True
+    lms_api_url: str = "https://693824c5c1ad33c1f114ebd2.base44.app/api/functions/submitGuideForm"
+    lms_api_key: str = ""
+    lms_timeout: int = 30
+
     class Config:
         env_file = ".env"
         case_sensitive = False

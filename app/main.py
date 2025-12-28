@@ -11,6 +11,7 @@ from app.config import settings
 from app.llm_providers import LLMFactory
 from app.services import EducationalService
 from app.learning_unit import LearningUnitGenerator
+from app.lms_integration import lms_integration
 
 # Create FastAPI app
 app = FastAPI(
@@ -71,6 +72,23 @@ class PracticeRequest(BaseModel):
 class LearningUnitRequest(BaseModel):
     prompt: str = Field(..., description="Natural language description of what to learn")
     provider: Optional[str] = Field(None, pattern="^(openai|anthropic|deepseek)$")
+
+
+class QuizAnswer(BaseModel):
+    question_number: int = Field(..., description="Question number")
+    answer: str = Field(..., description="Student's answer (A, B, C, or D)")
+
+
+class QuizSubmission(BaseModel):
+    student_id: str = Field(..., description="Student identifier")
+    quiz_topic: str = Field(..., description="Quiz topic")
+    quiz_difficulty: str = Field(..., description="Quiz difficulty level")
+    answers: List[QuizAnswer] = Field(..., description="List of student answers")
+    quiz_data: Dict[str, Any] = Field(..., description="Original quiz data")
+    guide_name: Optional[str] = Field(None, description="Learning guide name")
+    guide_chapter: Optional[str] = Field(None, description="Chapter name")
+    guide_section: Optional[str] = Field(None, description="Section name")
+    page_url: Optional[str] = Field(None, description="Page URL")
 
 
 # Helper function to get service with specified provider
@@ -220,6 +238,67 @@ async def generate_practice(request: PracticeRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating practice problems: {str(e)}")
+
+
+@app.post("/api/submit-quiz")
+async def submit_quiz_to_lms(submission: QuizSubmission):
+    """Submit quiz answers to LMS and return results only after successful submission."""
+    try:
+        # Extract quiz questions from quiz_data
+        quiz_questions = submission.quiz_data.get("questions", [])
+
+        if not quiz_questions:
+            raise HTTPException(status_code=400, detail="לא נמצאו שאלות במבחן")
+
+        # Prepare answers for grading
+        quiz_answers = [{"answer": ans.answer} for ans in submission.answers]
+
+        # Calculate score
+        score, detailed_answers = lms_integration.calculate_quiz_score(
+            quiz_answers,
+            quiz_questions
+        )
+
+        # Submit to LMS
+        lms_result = await lms_integration.submit_quiz_results(
+            student_id=submission.student_id,
+            guide_name=submission.guide_name or submission.quiz_topic,
+            quiz_data=submission.quiz_data,
+            quiz_answers=detailed_answers,
+            score=score,
+            total_questions=len(quiz_questions),
+            page_url=submission.page_url or "EduGenius Platform",
+            guide_chapter=submission.guide_chapter or f"נושא: {submission.quiz_topic}",
+            guide_section=submission.guide_section or f"רמה: {submission.quiz_difficulty}",
+            guide_task="השלמת מבחן"
+        )
+
+        # Only return results if LMS submission was successful
+        if not lms_result.get("success", False):
+            # LMS submission failed
+            error_message = lms_result.get("error", "שגיאה בשליחה למערכת הלמידה")
+            raise HTTPException(
+                status_code=500,
+                detail=f"לא ניתן לשלוח את התוצאות למערכת הלמידה: {error_message}"
+            )
+
+        # LMS submission successful - return results
+        return {
+            "success": True,
+            "message": "המבחן הוגש בהצלחה!",
+            "score": score,
+            "total_questions": len(quiz_questions),
+            "correct_answers": sum(1 for ans in detailed_answers if ans.get("is_correct")),
+            "wrong_answers": sum(1 for ans in detailed_answers if not ans.get("is_correct")),
+            "detailed_answers": detailed_answers,
+            "lms_response": lms_result.get("lms_response", {}),
+            "links": lms_result.get("links", {})
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"שגיאה בעיבוד המבחן: {str(e)}")
 
 
 @app.post("/api/learning-unit")
